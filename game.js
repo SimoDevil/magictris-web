@@ -497,7 +497,7 @@
     }
   }
 
-  /* ---------- effetto schegge radiali + orbita al piazzamento pedina ---------- */
+  /* ---------- effetto potenziato al piazzamento pedina: lampo + scatto + onda d'urto + schegge + orbita ---------- */
   function spawnPlacementFx(i, who){
     const cells = boardEl.querySelectorAll('.cell');
     const cellEl = cells[i];
@@ -505,30 +505,54 @@
     if(!cellEl) return;
     const r = cellEl.getBoundingClientRect();
     const cx = r.left + r.width/2, cy = r.top + r.height/2;
-    const color = who === X ? getComputedStyle(document.documentElement).getPropertyValue('--blue-glow') || '#2fd8ff' : '#ffcf4d';
+    const color = who === X ? '#5be6ff' : '#ffcf4d';
 
-    const n = 9;
+    // 1) lampo di luce + scatto elastico sulla casella stessa
+    cellEl.style.setProperty('--flash-color', color);
+    cellEl.classList.add('flash', 'punch');
+    setTimeout(() => cellEl.classList.remove('flash', 'punch'), 500);
+
+    // 2) onda d'urto anulare (doppio anello)
+    for(let ring=0; ring<2; ring++){
+      const shock = document.createElement('div');
+      shock.className = 'placement-shock';
+      shock.style.setProperty('--shock-color', color);
+      shock.style.width = shock.style.height = (r.width*0.9) + 'px';
+      shock.style.left = cx + 'px';
+      shock.style.top = cy + 'px';
+      shock.style.animationDelay = (ring*0.09) + 's';
+      document.body.appendChild(shock);
+      setTimeout(() => shock.remove(), 650);
+    }
+
+    // 3) schegge radiali, più dense e con lunghezza variabile
+    const n = 14;
     for(let k=0;k<n;k++){
       const shard = document.createElement('div');
       shard.className = 'placement-shard';
-      const ang = (360/n)*k + Math.random()*10;
+      const ang = (360/n)*k + (Math.random()*8 - 4);
+      const len = 10 + Math.random()*10;
+      const dist = 24 + Math.random()*22;
       shard.style.setProperty('--ang', ang + 'deg');
+      shard.style.setProperty('--dist', '-' + dist + 'px');
+      shard.style.height = len + 'px';
       shard.style.left = cx + 'px';
       shard.style.top = cy + 'px';
       shard.style.background = color;
-      shard.style.boxShadow = '0 0 6px ' + color;
+      shard.style.boxShadow = '0 0 8px ' + color + ', 0 0 2px #fff';
       document.body.appendChild(shard);
-      setTimeout(() => shard.remove(), 500);
+      setTimeout(() => shard.remove(), 550);
     }
 
+    // 4) micro-particelle orbitanti sulla pedina appena piazzata
     if(markEl){
-      for(let k=0;k<4;k++){
+      for(let k=0;k<5;k++){
         const orb = document.createElement('div');
         orb.className = 'orbit-particle';
-        orb.style.setProperty('--orbit-r', (22 + Math.random()*6) + 'px');
+        orb.style.setProperty('--orbit-r', (20 + Math.random()*8) + 'px');
         orb.style.background = color;
-        orb.style.boxShadow = '0 0 5px ' + color;
-        orb.style.animationDelay = (k*0.15) + 's';
+        orb.style.boxShadow = '0 0 6px ' + color;
+        orb.style.animationDelay = (k*0.12) + 's';
         markEl.appendChild(orb);
         setTimeout(() => orb.remove(), 2000);
       }

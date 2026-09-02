@@ -319,16 +319,49 @@
   .status{ font-size:0.95rem; font-weight:bold; margin-bottom:14px; min-height:22px; text-shadow: 0 0 6px rgba(255,255,255,0.2); }
   .status .flourish{ opacity:0.6; margin:0 6px; font-size:0.8em; }
 
+  /* lampo di luce sulla casella al momento del tocco */
+  .cell.flash::after{
+    content:""; position:absolute; inset:0; border-radius:14px;
+    background: radial-gradient(circle, var(--flash-color, #fff) 0%, transparent 70%);
+    animation: cellFlash .4s ease-out forwards;
+    pointer-events:none; z-index:5;
+  }
+  @keyframes cellFlash{
+    0%{ opacity:0.95; transform:scale(0.3); }
+    100%{ opacity:0; transform:scale(1.6); }
+  }
+  /* scatto elastico della casella colpita */
+  .cell.punch{ animation: cellPunch .38s cubic-bezier(.3,1.8,.4,1); }
+  @keyframes cellPunch{
+    0%{ transform:scale(1); }
+    35%{ transform:scale(0.88); }
+    70%{ transform:scale(1.08); }
+    100%{ transform:scale(1); }
+  }
+
   /* schegge radiali al piazzamento di una pedina */
   .placement-shard{
-    position:fixed; width:2px; height:14px; border-radius:2px;
+    position:fixed; width:3px; border-radius:3px;
     pointer-events:none; z-index:1998; left:0; top:0;
     transform-origin: center bottom;
-    animation: shardFly .45s ease-out forwards;
+    animation: shardFly .5s ease-out forwards;
   }
   @keyframes shardFly{
     0%{ transform: translate(-50%,-50%) rotate(var(--ang)) translateY(0) scaleY(1); opacity:1; }
-    100%{ transform: translate(-50%,-50%) rotate(var(--ang)) translateY(-26px) scaleY(0.3); opacity:0; }
+    100%{ transform: translate(-50%,-50%) rotate(var(--ang)) translateY(var(--dist)) scaleY(0.2); opacity:0; }
+  }
+
+  /* onda d'urto anulare al piazzamento */
+  .placement-shock{
+    position:fixed; border-radius:50%; left:0; top:0;
+    border:2px solid var(--shock-color, #fff);
+    pointer-events:none; z-index:1997;
+    transform: translate(-50%,-50%) scale(0.2);
+    animation: shockExpand .5s ease-out forwards;
+  }
+  @keyframes shockExpand{
+    0%{ transform: translate(-50%,-50%) scale(0.2); opacity:0.9; }
+    100%{ transform: translate(-50%,-50%) scale(1.8); opacity:0; }
   }
 
   /* micro-particelle orbitanti sulla pedina appena piazzata */
