@@ -154,19 +154,90 @@
 
   /* ---------- screen navigation ---------- */
   function showScreen(id){
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    const current = document.querySelector('.screen.active');
+    const next = document.getElementById(id);
+    if(current === next) return;
+    if(current){
+      current.classList.add('zoom-out');
+      setTimeout(() => {
+        current.classList.remove('active','zoom-out');
+        next.classList.add('active','zoom-in');
+        setTimeout(() => next.classList.remove('zoom-in'), 320);
+      }, 220);
+    } else {
+      next.classList.add('active');
+    }
   }
 
-  document.getElementById('modeClassic').addEventListener('click', () => {
+  /* ---------- magic particle burst (tap su blocchi di pietra) ---------- */
+  function spawnMagicParticles(x, y, color){
+    const n = 14;
+    for(let i=0;i<n;i++){
+      const p = document.createElement('div');
+      p.className = 'magic-particle';
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 40 + Math.random()*70;
+      p.style.setProperty('--dx', Math.cos(ang)*dist + 'px');
+      p.style.setProperty('--dy', Math.sin(ang)*dist + 'px');
+      p.style.left = x + 'px';
+      p.style.top = y + 'px';
+      p.style.background = color;
+      p.style.boxShadow = '0 0 8px ' + color;
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 750);
+    }
+  }
+  function spawnMagicRings(x, y, color, size){
+    for(let i=0;i<3;i++){
+      const ring = document.createElement('div');
+      ring.className = 'magic-ring';
+      ring.style.setProperty('--ring-color', color);
+      ring.style.width = size + 'px';
+      ring.style.height = size + 'px';
+      ring.style.left = x + 'px';
+      ring.style.top = y + 'px';
+      ring.style.animationDelay = (i*0.1) + 's';
+      document.body.appendChild(ring);
+      setTimeout(() => ring.remove(), 700);
+    }
+  }
+  function burstFromElement(el, color){
+    const r = el.getBoundingClientRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height/2;
+    spawnMagicParticles(cx, cy, color);
+    spawnMagicRings(cx, cy, color, Math.max(r.width, r.height));
+  }
+
+  /* ---------- sciame ambient di stelline sui blocchi (idle, home) ---------- */
+  function buildAmbientSparks(){
+    document.querySelectorAll('.stone-tablet.grey, .stone-tablet.gold').forEach(tablet => {
+      const color = tablet.classList.contains('gold') ? '#ffe9a8' : '#c8fff0';
+      for(let i=0;i<6;i++){
+        const s = document.createElement('div');
+        s.className = 'ambient-spark';
+        const size = 2 + Math.random()*2;
+        s.style.width = size + 'px';
+        s.style.height = size + 'px';
+        s.style.background = color;
+        s.style.left = (Math.random()*100) + '%';
+        s.style.top = (Math.random()*100) + '%';
+        s.style.animationDelay = (Math.random()*2.4) + 's';
+        tablet.appendChild(s);
+      }
+    });
+  }
+
+  document.getElementById('modeClassic').addEventListener('click', (e) => {
     footballMode = false;
     document.getElementById('modeClassic').classList.add('active');
     document.getElementById('modeFootball').classList.remove('active');
+    burstFromElement(e.currentTarget, '#8ffcdc');
   });
-  document.getElementById('modeFootball').addEventListener('click', () => {
+  document.getElementById('modeFootball').addEventListener('click', (e) => {
     footballMode = true;
     document.getElementById('modeFootball').classList.add('active');
     document.getElementById('modeClassic').classList.remove('active');
+    burstFromElement(e.currentTarget, '#ffd778');
   });
 
   document.getElementById('goCpu').addEventListener('click', () => {
@@ -363,7 +434,7 @@
     }
   }
 
-  function updateStatus(text){ statusEl.textContent = text; }
+  function updateStatus(text){ statusEl.innerHTML = '<span class="flourish">&infin;</span> ' + text + ' <span class="flourish">&infin;</span>'; }
 
   function checkWinnerOn(b){
     for(const line of WIN_LINES){
@@ -413,6 +484,7 @@
     board[i] = current;
     playPlaceSound(current);
     render();
+    spawnPlacementFx(i, current);
 
     const result = checkWinnerOn(board);
     if(result){ finishGame(result); return; }
@@ -422,6 +494,44 @@
 
     if(vsCpu && current === O && !gameOver){
       setTimeout(cpuMove, 500);
+    }
+  }
+
+  /* ---------- effetto schegge radiali + orbita al piazzamento pedina ---------- */
+  function spawnPlacementFx(i, who){
+    const cells = boardEl.querySelectorAll('.cell');
+    const cellEl = cells[i];
+    const markEl = cellEl.querySelector('.mark');
+    if(!cellEl) return;
+    const r = cellEl.getBoundingClientRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height/2;
+    const color = who === X ? getComputedStyle(document.documentElement).getPropertyValue('--blue-glow') || '#2fd8ff' : '#ffcf4d';
+
+    const n = 9;
+    for(let k=0;k<n;k++){
+      const shard = document.createElement('div');
+      shard.className = 'placement-shard';
+      const ang = (360/n)*k + Math.random()*10;
+      shard.style.setProperty('--ang', ang + 'deg');
+      shard.style.left = cx + 'px';
+      shard.style.top = cy + 'px';
+      shard.style.background = color;
+      shard.style.boxShadow = '0 0 6px ' + color;
+      document.body.appendChild(shard);
+      setTimeout(() => shard.remove(), 500);
+    }
+
+    if(markEl){
+      for(let k=0;k<4;k++){
+        const orb = document.createElement('div');
+        orb.className = 'orbit-particle';
+        orb.style.setProperty('--orbit-r', (22 + Math.random()*6) + 'px');
+        orb.style.background = color;
+        orb.style.boxShadow = '0 0 5px ' + color;
+        orb.style.animationDelay = (k*0.15) + 's';
+        markEl.appendChild(orb);
+        setTimeout(() => orb.remove(), 2000);
+      }
     }
   }
 
@@ -640,4 +750,5 @@
   render();
   updateScoreboard();
   updateTurnStatus();
+  buildAmbientSparks();
 })();

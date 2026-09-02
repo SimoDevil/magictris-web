@@ -1,13 +1,19 @@
 // Service worker minimale: mette in cache l'app shell così il gioco
 // funziona sempre offline, anche alla primissima apertura senza rete
 // dopo il primo caricamento andato a buon fine.
-const CACHE_NAME = 'magic-tris-v4';
+const CACHE_NAME = 'magic-tris-v9';
 const APP_SHELL = [
   './index.html',
   './style.css',
   './game.js',
   './manifest.json',
-  './simo-studio-intro.mp4',
+  './intro.mp4',
+  './nebula-bg.jpg',
+  './stone-dark.jpg',
+  './stone-grey.jpg',
+  './stone-gold.jpg',
+  './icon-compass.png',
+  './icon-cauldron.png',
   './vittoria.mp3',
   './icon-192.png',
   './icon-512.png'
