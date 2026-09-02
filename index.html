@@ -252,6 +252,7 @@
 
     function hideSplash(){
       if (!splash) return;
+      video.pause();
       splash.classList.add('fade-out');
       setTimeout(() => { splash.style.display = 'none'; }, 500);
     }
@@ -266,8 +267,9 @@
 
     video.addEventListener('ended', hideSplash);
     // rete di sicurezza: se per qualche motivo il video non parte mai,
-    // non si resta bloccati sullo splash
-    setTimeout(hideSplash, 6000);
+    // non si resta bloccati sullo splash (video attuale dura 14s, quindi
+    // il timer scatta solo se qualcosa va davvero storto)
+    setTimeout(hideSplash, 18000);
   })();
 </script>
 </body>
